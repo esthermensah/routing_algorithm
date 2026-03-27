@@ -1,0 +1,67 @@
+import networkx as nx
+import matplotlib.pyplot as plt
+import time
+
+# Create graph (DIRECTED example)
+G = nx.DiGraph()
+
+edges = [
+    ('A','B',1),
+    ('C','B',1),  # note direction!
+    ('A','C',10)
+]
+
+G.add_weighted_edges_from(edges)
+
+pos = nx.spring_layout(G)
+
+def draw_graph(dist, visited):
+    plt.clf()
+    labels = nx.get_edge_attributes(G, 'weight')
+    
+    node_colors = []
+    for node in G.nodes():
+        if node in visited:
+            node_colors.append('green')
+        else:
+            node_colors.append('lightgray')
+
+    nx.draw(G, pos, with_labels=True, node_color=node_colors, node_size=2000)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+
+    # Show distances
+    for node, (x, y) in pos.items():
+        d = dist[node]
+        text = f"{node}\n{d if d != float('inf') else '∞'}"
+        plt.text(x, y+0.1, text, ha='center')
+
+    plt.pause(1)
+
+
+def dijkstra(start):
+    dist = {node: float('inf') for node in G.nodes()}
+    dist[start] = 0
+    visited = set()
+
+    plt.figure()
+
+    while len(visited) < len(G.nodes()):
+        # pick smallest unvisited
+        current = min(
+            (node for node in G.nodes() if node not in visited),
+            key=lambda node: dist[node]
+        )
+
+        visited.add(current)
+
+        draw_graph(dist, visited)
+
+        for neighbor in G.successors(current):
+            weight = G[current][neighbor]['weight']
+            if dist[current] + weight < dist[neighbor]:
+                dist[neighbor] = dist[current] + weight
+
+    draw_graph(dist, visited)
+    plt.show()
+
+dijkstra('A')
