@@ -1,41 +1,83 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import time
 
-# Create graph (DIRECTED example)
-G = nx.DiGraph()
+# =========================================================
+# 🔧 EDIT THIS SECTION ONLY (for your lessons)
+# =========================================================
+
+DIRECTED = True   # True = arrows, False = no arrows
 
 edges = [
     ('A','B',1),
-    ('C','B',1),  # note direction!
+    ('C','B',1),
     ('A','C',10)
 ]
 
+start_node = 'A'
+
+# Optional: fix positions (keeps graph stable)
+positions = {
+    'A': (0, 1),
+    'B': (-1, 0),
+    'C': (1, 0)
+}
+
+# =========================================================
+# 🚀 DO NOT TOUCH BELOW (algorithm + visualization)
+# =========================================================
+
+# Create graph
+G = nx.DiGraph() if DIRECTED else nx.Graph()
 G.add_weighted_edges_from(edges)
 
-pos = nx.spring_layout(G)
+# Use fixed positions if provided, else auto layout
+pos = positions if positions else nx.spring_layout(G)
 
-def draw_graph(dist, visited):
+
+def draw_graph(dist, visited, current, updated_edges):
     plt.clf()
     labels = nx.get_edge_attributes(G, 'weight')
-    
+
+    # Node colors
     node_colors = []
     for node in G.nodes():
-        if node in visited:
-            node_colors.append('green')
+        if node == current:
+            node_colors.append('yellow')        # current node
+        elif node in visited:
+            node_colors.append('lightgreen')    # visited
         else:
-            node_colors.append('lightgray')
+            node_colors.append('lightgray')     # not visited
 
-    nx.draw(G, pos, with_labels=True, node_color=node_colors, node_size=2000)
+    # Edge colors
+    edge_colors = []
+    for edge in G.edges():
+        if edge in updated_edges:
+            edge_colors.append('red')           # updated edge
+        else:
+            edge_colors.append('black')
+
+    nx.draw(
+        G, pos,
+        with_labels=True,
+        node_color=node_colors,
+        node_size=2500,
+        font_size=12,
+        font_weight='bold',
+        arrows=DIRECTED,
+        edge_color=edge_colors,
+        width=2
+    )
+
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
 
-    # Show distances
+    # Show distances inside nodes
     for node, (x, y) in pos.items():
         d = dist[node]
-        text = f"{node}\n{d if d != float('inf') else '∞'}"
-        plt.text(x, y+0.1, text, ha='center')
+        text = f"{d if d != float('inf') else '∞'}"
+        plt.text(x, y-0.2, text, ha='center', fontsize=12, color='blue')
 
-    plt.pause(1)
+    plt.title(f"Current Node: {current}", fontsize=14)
+    plt.pause(1.2)
 
 
 def dijkstra(start):
@@ -46,22 +88,29 @@ def dijkstra(start):
     plt.figure()
 
     while len(visited) < len(G.nodes()):
-        # pick smallest unvisited
         current = min(
             (node for node in G.nodes() if node not in visited),
             key=lambda node: dist[node]
         )
 
-        visited.add(current)
+        updated_edges = []
 
-        draw_graph(dist, visited)
+        # Use correct neighbors depending on graph type
+        neighbors = G.successors(current) if DIRECTED else G.neighbors(current)
 
-        for neighbor in G.successors(current):
+        for neighbor in neighbors:
             weight = G[current][neighbor]['weight']
             if dist[current] + weight < dist[neighbor]:
                 dist[neighbor] = dist[current] + weight
+                updated_edges.append((current, neighbor))
 
-    draw_graph(dist, visited)
+        visited.add(current)
+
+        draw_graph(dist, visited, current, updated_edges)
+
+    draw_graph(dist, visited, None, [])
     plt.show()
 
-dijkstra('A')
+
+# Run
+dijkstra(start_node)
