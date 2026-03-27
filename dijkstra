@@ -2,7 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 # =========================================================
-# 🔧 EDIT THIS SECTION ONLY (for your lessons)
+# EDIT THIS SECTION ONLY 
 # =========================================================
 
 DIRECTED = True   # True = arrows, False = no arrows
@@ -23,7 +23,7 @@ positions = {
 }
 
 # =========================================================
-# 🚀 DO NOT TOUCH BELOW (algorithm + visualization)
+# DO NOT EDIT
 # =========================================================
 
 # Create graph
